@@ -1,0 +1,43 @@
+how to install Apache tomcat-9 on EC2
+
+#cd /tmp
+#pwd
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.62/bin/apache-tomcat-9.0.62.tar.gz
+
+#https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.69/src/apache-tomcat-9.0.69-src.tar.gz
+
+#sudo mkdir /opt/tomcat
+
+#tar -xvzf apache-tomcat-9.0.62.tar.gz
+
+#mv apache-tomcat-9.0.62.tar.gz /opt/tomcat/
+
+#sudo chown -R ec2-user: /opt/tomcat
+
+#sudo sh -c 'chmod +x /opt/tomcat/apache-tomcat-9.0.62/bin/*.sh'
+
+cd /opt/tomcat/apache-tomcat-9.0.62/bin
+
+NOTE: Edit using the variables below:
+8080 → 8090 
+#cd /opt/tomcat/apache-tomcat-9.0.69-src/conf
+
+#  vim server.xml
+    <Connector port="8090" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+
+
+
+Open port 8090 in Rocky Linux Firewall
+To access the Apache Tomcat web interface outside the localhost, we need to open port 8090 in the firewall of Rocky Linux
+
+# firewall-cmd --zone=public --permanent --add-port=8090/tcp
+# firewall-cmd --reload
+
+
+./catalina.sh start
+
+./catalina.sh stop
+
+journalctl -f -u tomcat

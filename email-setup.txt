@@ -1,0 +1,10 @@
+email-smtp.us-east-1.amazonaws.com
+
+ses-smtp-user.20221211-193900
+
+ses-smtp-user.20221211-193900
+SMTP Username:
+AKIA3Z445SGUQC6ULG7P
+
+SMTP Password:
+BEiw6yupgN8gu2JL8yU3nFtqO1tSTH+J3ADffSlzMuz6

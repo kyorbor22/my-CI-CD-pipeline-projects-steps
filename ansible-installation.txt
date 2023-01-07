@@ -1,0 +1,43 @@
+#sudo dnf install epel-release
+
+#sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+
+#sudo rpm -ql epel-release
+
+#sudo dnf install ansible --skip-broken
+
+#sudo vi /etc/ansible/hosts
+
+{ #!/bin/bash
+set -ex
+
+# Add EPEL repository
+
+osV=$(rpm --eval '%{centos_ver}')
+
+if [ "$osV" == "8" ]; then
+    cd /etc/yum.repos.d/
+    sudo sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+    sudo sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+
+    sudo yum install -y epel-release
+    sudo sed -i 's/metalink/#metalink/g' /etc/yum.repos.d/epel*
+    sudo sed -i 's|#baseurl=https://download.example/pub/|baseurl=https://mirror.init7.net/fedora/|g' /etc/yum.repos.d/epel*
+else
+   sudo yum install -y epel-release
+fi
+
+sudo yum install -y ansible
+}
+#################################################################################
+
+wget http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/ansible-core-2.12.2-3.el8.x86_64.rpm
+wget http://mirror.centos.org/centos/8-stream/AppStream/aarch64/os/Packages/python38-resolvelib-0.5.4-5.el8.noarch.rpm
+wget http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/sshpass-1.09-4.el8.x86_64.rpm
+dnf install  python38-resolvelib-0.5.4-5.el8.noarch.rpm
+
+dnf install sshpass-1.09-4.el8.x86_64.rpm
+dnf install ansible-core-2.12.2-3.el8.x86_64.rpm
+
+
+###########################

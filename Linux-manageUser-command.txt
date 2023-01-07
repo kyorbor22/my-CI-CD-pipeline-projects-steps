@@ -1,0 +1,57 @@
+
+vim ~/.vimrc
+
+autocmd FileType yaml setlocal ts=2 sw=2 ai et cursorcolumn
+
+==================================================================================
+$sudo useradd ansible 
+$sudo hostname ansible 
+$echo "ansible ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ansible
+$sudo su - ansible 
+# Enable PassowrdLogin and assign password to ansible user 
+$ sudo yum install python3 -y 
+$ sudo yum -y install python3-pip -y 
+$ pip3 install ansible --user
+======================================================================
+
+
+groupmod -n ansiadmin tech-jah
+
+sudo useradd -d /home/test_user test_user
+
+usermod -l ansiadmin tech-jah
+
+usermod -d /home/userxx /home/useryy
+
+# usermod -d /home/tech-jah /home/ansiadmin
+
+# usermod -d /home/ansiadmin ansiadmin
+
+# gpasswd -d tecmint postgres
+# groups tecmint
+
+sudo cp -Rf /home/ansibleuser/.ssh /root/.ssh
+
+ssh -i ~/.ssh/id_rsa root@172.31.89.157  {to copy private-key to a remote server}
+
+#ssh-copy-id -i id_rsa.pub ansiadmin@192.168.177.134 {to copy private-key to a remote server}
+
+#vim /etc/ssh/sshd_config
+
+#$ cp -R <source_folder> <destination_folder>
+ 
+# To disable tunneled clear text passwords, change to no here!
+PasswordAuthentication yes
+#PermitEmptyPasswords no
+#PasswordAuthentication yes
+
+******ansible command*****
+
+ansible all -m command -a uptime
+
+sudo ansible-playbook --syntax-check
+
+ansible-playbook regapp.yml --check
+
+ansible-playbook regapp.yml --limit local or ip
+

@@ -1,0 +1,193 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset2 Symbol;}}
+{\colortbl ;\red0\green255\blue255;\red0\green0\blue255;\red255\green0\blue0;\red255\green255\blue0;}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 ================Maven Integration to Jenkins=============\par
+Tasks:\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Automate CI/CD Pipeline job execution from Maven build and test cases execution\par
+{\pntext\f1\'B7\tab}Perform Parallel build with different labels for development and production environment.\par
+{\pntext\f1\'B7\tab}webhook integration with jenkins\par
+{\pntext\f1\'B7\tab}sending email notification to user-admin\par
+{\pntext\f1\'B7\tab}How to create AWS EC2 Linux Machine?\par
+{\pntext\f1\'B7\tab}how to install Jenkins on AWS EC2\par
+{\pntext\f1\'B7\tab}How to integrate GitHUb with Jenkins?\par
+{\pntext\f1\'B7\tab}How to implement webhooks in your Jenkins pipeline?\par
+{\pntext\f1\'B7\tab}How to integrate Maven with Jenkins to automate the builds?\par
+{\pntext\f1\'B7\tab}How to integrate email plugin in Jenkins?\par
+{\pntext\f1\'B7\tab}How to create Maven build jenkins job?\par
+
+\pard\sa200\sl276\slmult1 ========================Tasks=======================\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Create AWS EC2 Linux Machine and install Jenkins on it.\par
+{\pntext\f1\'B7\tab}Impplement webhook integration between Jenkins and Github for automation builld execution.\par
+{\pntext\f1\'B7\tab}Install and integrate Maven tool to build JAVA code.\par
+{\pntext\f1\'B7\tab}Implement an email plugin in jenkins's pipeline to send noktifications post pipeline completion.\par
+{\pntext\f1\'B7\tab}Test build automation with the help of build tools like maven to understand the build process.\par
+
+\pard\sa200\sl276\slmult1 ===create you ec2-instances:\par
+===create security group\par
+===ssh tcp 22 custom 0.0.0.0\par
+===tcp tcp 8080 custom 0.0.0.0  ::/0\par
+===review and lunch\par
+===create key-pair\par
+===========================java installation=======\par
+#java --version\par
+#yum -y insstall java-11*\par
+#java --version\par
+=========navigate to the path where java is installed========\par
+#cd /usr/lib/jvm\par
+#ls -ltr\par
+Now select java----open-jdk\par
+copy this path to setup your java home path\par
+#/usr/lib/java-11-open-jdk...\par
+ #cd \par
+vim .bash_profile\par
+JAVA_HOME=/usr/lib/jvm/java-<home path>\par
+PATH=$PATH:HOME/bin:JAVA_HOME\par
+:wq! [Save and quit]\par
+cat .bash_profile\par
+#echo $JAVA_HOME\par
+#source $PATH\par
+or exit or lugout root\par
+then login in again.\par
+#echo $JAVA_HOME\par
+\highlight1\b ======Now Download and Configure Jenkins======================\par
+\highlight0\b0 Before installing jenkis do the following:\par
+First download Jenkins repository: \par
+Second, download jenkins key:\par
+#Jenkins Repo and key download command:\par
+sudo wget -O /etc/yum.repos.d/jenkins.repo {{\field{\*\fldinst{HYPERLINK https://pkg.jenkins.io/redhat-stable/jenkins.repo }}{\fldrslt{https://pkg.jenkins.io/redhat-stable/jenkins.repo\ul0\cf0}}}}\f0\fs22\par
+sudo rpm --import {{\field{\*\fldinst{HYPERLINK https://pkg.jenkins.io/redhat-stable/jenkins.io.key }}{\fldrslt{https://pkg.jenkins.io/redhat-stable/jenkins.io.key\ul0\cf0}}}}\f0\fs22\par
+#yum -y install jenkins*\par
+=================next, check the status of Jenkins:===============\par
+#ystemctl status jenkins.service\par
+#systemctl start Jenkins.service\par
+#systemctl enable Jenkins --now\par
+=========Now, Navigate to your jenkins console================\par
+copy the following to a browser:\par
+{{\field{\*\fldinst{HYPERLINK http://copy.public.ip:8080 }}{\fldrslt{http://copy.public.ip:8080\ul0\cf0}}}}\f0\fs22\par
+==unlock the key by cating the following path:\par
+\cf3 /var/lib/jenkins/secretes/initialAdminPassword\par
+#cat  /var/lib/jenkins/secretes/initialAdminPassword\cf0\par
+paste the key as Administrative password.\par
+===Next, Customize jenkins.\par
+===click on suggested plugins to install\par
+===now create first admin user and save and finish\par
+\highlight1 ================Next step, add JAVA_HOME path to Jenkins===============\highlight0\par
+click on Dashboard==>Global Tool Configuration==>\par
+under JDK:\par
+name: JAVA_HOME\par
+JAVA_HOME: \par
+\cf3 UNCHECKED \cf0 AUTOMATIC INSTALL\par
+save and apply.\par
+\highlight1 =======================Next, check to see if Git is installed=============\highlight0\par
+#git --version\par
+#yum -y install git\par
+==========navigate to Jenkins console to see if git plugins are installed=============\par
+Manage Jenkins==>Manage Plugins==>installed[search for git plugins] installed without start\par
+Manage Jenkins===Global Configuration==>check Git==>Name[git]===>path to Git executable\cf3 [/usr/bin/git]\cf0\par
+To get the path to Git executable, go back to jenkins terminal, and #cd /usr/bin\par
+#ls -ltr\par
+save and apply\par
+\highlight1 =================next, test the setup by creating a jenkins job=======================\par
+\highlight0 click on \cf3 New Item\cf0 ===>\cf3 Enter an item name\cf0 ==>\{clone repository demo\}===>\cf3 Free Style Project\cf0\par
+Dashboard==>Clone Repository Demo==>Descritpion[clonign git repository in CI/CD pipeline]\par
+scroll down===>select Git===>URL<\highlight4 paste it here: github repository link\highlight0 >\par
+save and apply\par
+==now, click on Build Now [This will build the job in the CI/CD pipeline].\par
+==To see your workspace: Click on Dashboard==>Clone Repository Demo\par
+\highlight1\b\fs28 =================next, setup webhooks=====================\highlight0\b0\fs22\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Webhooks help to trigger Jenkins job whenever any changes are made to github.\par
+{\pntext\f1\'B7\tab}for instance, whenever a change is made and commited in github, that will send a signal to jenkins to carry out a build.\par
+{\pntext\f1\'B7\tab}Navigate to your github repository: click on our CI/CD pipeline repository\par
+
+\pard\sa200\sl276\slmult1 ==then, Settings===>on the left hand side, Webhooks===>add webhook==>you will be prompted to enter your github password.\par
+==provide the payload URL<Jenkins-public-URL> \par
+{{\field{\*\fldinst{HYPERLINK http://192.168.2.3:8080/github-webhook/ }}{\fldrslt{http://192.168.2.3:8080/github-webhook/\ul0\cf0}}}}\f0\fs22\par
+==under Content Type: select: Application/json\par
+==add webhook\par
+\highlight1\b\fs28 ===============Navigate to Jenkins console===================\highlight0\b0\fs22\par
+click on the job name "Clone Repository Demo" ===>Configure==>BUild Triggers[Github hooks trigger for GITscm polling]\par
+save and apply.\par
+======Now, to test your configuration, go back to your github repository, make changes to the readme file and commit=====\par
+\highlight1 =======Now we need to integrate Maven to automate the job===========\highlight0\par
+***Navigate to your Jenkins Server:\par
+===================#Maven download command:==============================\par
+wget {{\field{\*\fldinst{HYPERLINK https://mirrors.gigenet.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz }}{\fldrslt{https://mirrors.gigenet.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz\ul0\cf0}}}}\f0\fs22\par
+#maven --version\par
+#cd /opt \par
+#wget \cf3 <paste the Maven download path here\cf0 >\par
+#tar -xvfz <path-name.gz>\par
+#mv <path-name> maven\par
+#ls -ltr\par
+#cd maven\par
+#ls -ltr\par
+#pwd\par
+/opt/maven\par
+\highlight1\b ==============now navigate to the .bash_profile===================\highlight0\b0\par
+===vim .bash_profile\par
+JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto.x86_64\par
+M2_HOME=/opt/maven\par
+M2=/opt/maven/bin\par
+PATH=$PATH:HOME/bin:JAVA_HOME:$M2_HOME:$M2\par
+:wq! [Save and quit]\par
+cat .bash_profile\par
+#echo $M2_HOME\par
+#source $PATH\par
+or exit or lugout root\par
+then login in again.\par
+#echo $M2_HOME\par
+#echo $M2\par
+\highlight1\b =====================Next, go to jenkins console to download Maven plugins======\par
+\highlight0\b0 ==Dashboard==>Manage Jenkins==>manage plugins==>available[maven++maven integration,Maven Innoker,]===install without start.\par
+==Dashboard==>Manage Jenkins==>Global Configuration==>add Maven===>\par
+==Name[M2_HOME]==unchecked installed automatically\par
+===MAVEN_HOME [/opt/maven]\par
+save and apply\par
+\highlight1\b\fs24 ==============To validate the setup===========================\highlight0\b0\fs22\par
+==click on create New Job====>Maven Project==>Enter an item name[maven-jenkins integration] click ok\par
+==click on job name==configure==>description[testing maven set up]\par
+==source code Management==Git==>Repository URL:<CI/CD repo link here>\par
+==Build:\par
+\tab ===Root PCM[pom.xml] *****this is required to run maven*** \par
+\tab ===Goals and options[clean install package]\par
+\tab\tab\tab This will do the following:\par
+\tab\tab\tab  1. clean installed setup, 2. installation, 3.create a pckge.\par
+== ===============keep everything as default, click save and apply=================\par
+===now click build to perform the deployment\par
+===To validate, click on the JOB-NAME==clcik workspace, you will see a new folder called target\par
+===click on it to see it content[the .war file that was created.\par
+====LASTLY INTEGRATE EMAIL PLUGIN to send notification to the user===============\par
+==Dashboard==>manage jenkins==>Manage plugins==>installed[email plugin]\par
+==Dashboard==>Manage Jenkins==>Configuration==>Extended E-mail Notification\par
+==SMTP Server [smtp.gmail.com]\par
+==SMTP Port [465]\par
+==Default e-mail surfix [@gmail.com]\par
+==Default e-mail Recepients [jallman379@gmail.com]\par
+===click on advance\par
+====SMTP Username [jallman379@gmail.com]\par
+====SMTP Password [jallman]\par
+===select [Use ssl]\par
+===Additional groovy classpath====\par
+==Enabled Debug Mode [select]\par
+==click on Default Triggers\par
+==select [always]\par
+save and apply\par
+\par
+\highlight1\b ======================now select your maven job========================\highlight0\b0\par
+configure==>Post-Build Actions [Editable Email Notification]\par
+attached Build log [ attached Build log]\par
+===save and apply\par
+\highlight1\b ===============Test setup by running build now!======\highlight0\b0\par
+If you dont see your email, then you have to configure your email security setup by clicking on the link provided in build console output.\par
+===disable two steps authentication.\par
+===it will allow you to be able to receive messages.\par
+====To test your setup, go to your github and make changes to CI/CD repo readme file and commit it===\par
+go back to jenkins console to see changes!!!\par
+\par
+\par
+\par
+\par
+}
+ 

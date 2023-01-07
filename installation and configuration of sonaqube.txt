@@ -1,0 +1,47 @@
+installation and configuration of sonaqube
+
+jenkins-sonarq-to: squ_3a0f630056d18b4b4a88f067b8287145404287d3
+
+#Sonarqube scanner download command:
+
+#mkdir /opt
+
+#cd /opt
+
+#wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-6.7.7.zip
+
+ls -la
+
+#unzip sonarqube-6.7.7.zip
+
+# mv sonarqube-6.7.7.zip sonarqube
+
+# chown -R sonaruser: sonarqube
+
+#chmod -R 755 /opt/sonarqube
+
+
+# cd /opt/sonarqube/bin/linux-x86-64
+
+# ls -ltr
+
+# ./sonar.sh status
+
+#./sonar.sh start
+
+===============================on your Jenkins server==============================
+navigate to /opt directory
+
+install sonarqube-scanner
+
+#wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.1.0.1829-linux.zip
+
+#unzip sonar-scanner-cli-4.1.0.1829-linux.zip
+
+#cd /opt/sonarscanner/conf
+
+#vim sonar-scanner.properties
+
+#----- Default SonarQube server
+sonar.host.url=172.31.58.140:9000
+

@@ -1,0 +1,22 @@
+#choose Instances
+
+choose the Security tab
+
+Security groups lists the security groups
+
+choose the security group ID link to open the security group.
+
+On the Inbound rules tab, choose Edit inbound rules
+
+ Edit inbound rules page, do the following:
+
+Add rule
+
+For Type, choose SSH.
+
+For Source, choose My IP to automatically populate
+
+Alternatively, for Source, choose Custom and enter the public IPv4 address of your computer
+
+For example, if your IPv4 address is 203.0.113.25, enter 203.0.113.25/32
+

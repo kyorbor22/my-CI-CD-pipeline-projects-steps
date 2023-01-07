@@ -1,0 +1,11 @@
+- name: create kubernetes deployment and pods
+  hosts: all
+  become: true
+  user: root
+  tasks:
+    - name: create kubernetes deployment
+      command: kubectl apply -f application-deployment.yml 
+
+    - name: update deployment and replace pods once updated docker image is uploaded to docker hub
+      command: kubectl rollout restart deployment.v1.apps/application-deployment
+      

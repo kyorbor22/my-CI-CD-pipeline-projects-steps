@@ -1,0 +1,13 @@
+---
+- name: pull docker image and deploy on docker container
+  hosts: all
+  become: true
+  remote_user: ansibleuser
+  gather_facts: no
+  tasks:
+    - name: pull docker image from docker hub account
+      command: docker PULL tech-jah/application-image:latest
+    
+    - name: creat docker container
+      command: docker container run -d --name application-container -p 8080:8080 tech-jah/application-image:latest
+

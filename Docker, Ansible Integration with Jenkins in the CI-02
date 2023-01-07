@@ -1,0 +1,398 @@
+Integrating Docker, Ansible with Jenkins in the CI/CD Pipeline
+		
+								Tools to use in this project are:
+
+
+⦁	git and Github
+⦁	dockerhub
+⦁	AWS EC2 instances
+⦁	Jenkins and Maven
+⦁	Ansible and Docker
+
+Tasks:
+1.	Install Docker and Integrate with Jenkins
+2.	Integrate Docker with Ansible.
+3.	Create Docker file using your Docker image
+4.	Create Ansible playbook to manage Docker containers
+5.	Tag docker image inside ansible playbook
+6.	Deploy Docker container using Jenkins CI/CD pipeline
+7.	integrate POLL SCM with Jenkins
+
+
+											Docker Server:
+
+⦁	Docker is an open-source software designed to facilitate and simplify application development.
+⦁	Docker is used for developing, shipping, and running applications
+⦁	 Docker is a fantastic tool that aids in the continuous deployment process.
+⦁	Docker allows you to make inevitable development, production, and staging environments, thereby providing you seamless control overall changes
+
+add security group
+add or open two ports
+port 22
+port 8080
+#update server
+#yum -y update
+#yum -y install docker
+#docker --version
+#systemctl status docker
+#systemctl start docker
+
+
+											Ansible Server:
+Ansible is a simple but powerful configuration management and orchestration tool
+⦁	Provisioning
+⦁	Configuration Management
+⦁	Application Deployment
+⦁	 Continuous Deployment
+⦁	Automation, and Orchestration
+#yum -y install python
+==install ansible
+# sudo amazon-linux-extras install ansible2 -y
+#yum install python-pip -y
+#pip install ansible
+#ansible --version
+create /etc/ansible directory
+#mkdir /etc/ansible
+#cd /etc/ansible
+
+
+=========Next, create same ansible user for both machines==========
+#useradd ansibleuser
+#passwd ansibleuser
+=================add both users to sudoers file on both machines======
+#visudo
+ansibleuser   ALL=(ALL)       NOPASSWD: ALL
+====validate
+#visudo
+shift+G
+=======on both master-server and docker-server, enable user authentication========
+navigate to /etc/ssh/sshd_config
+
+#vim /etc/ssh/sshd_config
+	# To disable tunneled clear text passwords, change to no here!
+	PasswordAuthentication yes
+	#PermitEmptyPasswords no
+	#PasswordAuthentication no
+============start sshd daemon==========
+#systemctl start sshd
+#systemctl enable sshd --now
+#systemctl status sshd
+=====Next Generate private and public keys (key-gen)
+=====first switch to ansibleuser
+#su - ansaibleuser
+#ls -la
+#ssh-keygen -t rsa
+#ls -la
+#cd .ssh
+#ls -ltr
+
+
+==next, copy the public-key and private key to host(node) and localhost==
+===This will allow for a passwordless remote login
+#ssh-copy-id -i ansibleuser@<docker-private-IP>
+#ssh-copy-id -i <localhost>
+===Next, add this dockeruser to the docker group========
+create  a docker user
+#useradd dockeruser
+#passwd dockeruser
+#cat /etc/group
+#usermod -aG docker dockeruser
+#id dockeruser
+===========enable user authentication============
+#cd /etc/ssh
+#vim sshd_config
+PasswordAuthentication yes
+permitEmptypassword no
+#PasswordAuthentication yes
+:wq!
+=====start sshd============
+#sudo systemctl restart sshd
+#systemctl status sshd
+
+
+2.====integrate docker server to jenkins=====
+click on Managage Jenkins===>clcik on Manage Plugins [ install "Publish Over SSH"]
+==Now add Docker server to allow it send and recieve package over ssh==
+Click on Manage Jenkins==>clcik on Configure System
+scroll down to [SSH Server]
+click on [add server]
+Name: [Docker-server]
+Hostname: [docker-server-Private-IP]
+username: [dockeruser]
+=====Click [Advance]
+check-mark [use password/authentication or use-a-different key]
+Enter:Passphrase/password[**************]
+=======================================Now [test configuration]=====
+save & apply
+
+
+3.==Integrate Docker Server with Ansible Server===
+login to ansible server:
+#yum -y update
+#yum -y install docker
+#docker --version
+#systemctl status docker.service
+#systemctl restart docker.service
+#systemctl status docker.service
+===check for running containers by using few docker commands=====
+#docker conatiner ls -a
+#docker ps -a
+====It is advisable to always run your system as a none root user===
+add ansibleuser to docker group on your ansible server
+#cat /etc/group [To view all the groups]
+#usermod -aG docker ansibleuser
+#cat /etc/group
+add ansibleuser to docker group on your Docker server
+#useradd ansibleuser
+#passwd ansibleuser
+#usermod -aG docker ansibleuser
+#cat /etc/group
+==Add ansibleuser to sudoer's file on docker server=====
+#visudo
+	ansibleuser ALL=(ALL)	NOPASSWD:ALL
+==Log back to ansible server and Switch to ansibleuser==
+#su - ansibleuser 
+==create ssh-keygen keys
+#ssh-keygen -t rsa
+#ls -la 
+#cd .ssh
+#ls -ltr
+===Copy ssh private and public keys to your docker server and localhost server====
+#ssh-copy-id -i ansibleuser@docker-private-ip
+#ssh-copy-id -i ansibleuser@localhost
+#ssh ansibleuser@docker-private-ip
+#exit
+====Add Docker Server private IP to /etc/ansible/hosts file========
+#cd /etc/ansible/
+#sudo vim hosts
+	Docker server ip
+localhosts
+:wq!
+
+
+=====Run ansible ping command to verify docker host is pinging=====
+#ansible all --list-hosts
+#ansible all -m ping
+to create user on a remote host
+#ansible all -m user -a "name=john" -b
+To install a package using modules
+#ansible all -m yum -a "name=httpd" -b
+=====Create docker directory in the /opt directory on Ansible server==
+=artifactory will be copied to this file from jenkins
+
+#cd /opt
+#ls -ltr
+#mkdir docker
+#ls -ltr
+#pwd
+/home/ansibleuser/opt/docker
+#chown -R ansibleuser: /opt/docker
+==Navigate to Jenkins console, create a Jenkins Job to copy application ".war" file on Ansible Server /opt/docker
+==Click on[New Item] ==> Enter an Item name[Jenkins-ansible-docker-integration] 
+==click on Maven project and Click [OK]
+==Click on job name[Jenkins-ansible-docker-integration] 
+==Description[ This job is a demo for integrating jenkins-ansible-and ] 
+==Scroll Down to Source Code Management
+	Check: Git
+Git: Repository URL [********************************]
+Build
+	=Root POM
+		[pom.xml]
+	=Goals and options
+		[clean install package]
+Scroll down to [Post build-action]
+	select [send build artifacts over SSH]
+SSH Publishers
+	SSH Server====>Name[ ansible-server] or [docker-server]
+Transfers Set:
+	Source files[**/*.war]
+Remote directory [/opt/docker]
+click on [save & apply] 
+====Now to test job, click on [Build Now]
+========To validate the deployment of the artifacts, navigate to ansible-server===
+#cd /home/ansibleuser/opt/docker
+#ls -ltr
+#cd target
+#ls -ltr
+java-tomcat-maven-example.war
+===============================================================================Now take the above file: java-tomcat-maven-example.war and create a docker file to build the image on ansible server.
+Now cd to the /opt/docker directory and create a Dockerfile
+Create a Dockerfile: A Dockerfile contains a script of instructions that Docker uses to create a container image.
+⦁	Dockerfile must begin with a FROM instruction.
+⦁	The FROM instruction specifies the Parent Image from which you are building.
+⦁	Environment variables are supported by the following list of instructions in the Dockerfile:
+⦁	    ADD
+⦁	    COPY
+⦁	    ENV
+⦁	    EXPOSE
+⦁	    FROM
+⦁	    LABEL
+⦁	    STOPSIGNAL
+⦁	    USER
+⦁	    VOLUME
+⦁	    WORKDIR
+⦁	    ONBUILD (when combined with one of the supported instructions above)
+#cd ..
+docker]$ vim Dockerfile
+FROM tomcat:latest
+MAINTAINER tech-jah
+COPY ./target/java-tomcat-maven-example.war /usr/local/tomcat/webapps
+:wq!
+#ls -ltr
+===To build the docker image run the folloing commands:
+#docker build -t application-image .
+===To run in detached mode
+#docker run -d --name application-image -p 8090:8080 application-image:v1
+===To view your images
+#docker image ls -a
+To push the application image to the Hub Docker-account manaually
+add dockerhub hub credential to your docker server
+#docker login:
+#password:
+==Note!! Before pushing your application, 
+===tag the application image with your dockerhub username 
+==List all your docker images
+#docker image ls
+==tag application image
+#docker image tag application-image tech-jah/application-image:v1
+==Now validate
+#docker image ls
+REPOSITORY			TAG			IMAGE ID	CREATED	SIZE
+tech-jah/application-image:v1	application-image 	281739179	2mins ago	453MB
+application-image		latest			281739120	10mins ago	953MB
+===To push image to docker hub account, do !!
+#docker image push tech-jah/application-image:v1
+======To validate, Go to your Docker Hub account and refresh the page
+https:///hub.docker.com/repository
+==============================================================================
+=How to push the application-image using ansible-playbook
+==To push application-image to hub-docker.com.
+==From the /home/ansibleuser/opt/docker directory
+==Create a .yml file
+#vim create-application-image.yml
+---
+- name: create and push docker image to dockerhub account
+  hosts: all
+  become: true
+  gather_facts: no
+  tasks:
+    - name: create docker image
+      command: docker image build -t application-image:latest .
+      args:
+      	 	chdir: /home/ansibleuser/opt/docker
+    - name: add tag to docker image
+      command: docker image tag application-image tech-jah/application-image:v1
+
+    - name: push docker image to docker hub account
+      command: docker image push tech-jah/application-image:v1
+      
+    - name: remove docker image from ansible-server
+      command: docker image rm application-image:latest tech-jah/application-image:v1
+      ignore_errors: yes
+:wq!
+================================================================================Before running the playbook, ensure that you remove all the images and containers that are running, otherwise it would send an error.
+==To check for runnig containers
+#docker container ls -la
+==To check for runnig images
+#docker image ls
+===Now Remove all the running images
+#docker image rm tech-jah/application-image tomcat application-image
+#docker image ls
+================================================================================Now run the playbook to check the syntax
+#ansible-playbook create-application-image.yml --check
+#ansible-playbook create-application-image.yml --limit localhost
+=====To validate the task: go back to your dockerhub account and refresh the page
+===There you will see the changes
+==============================================================================
+=======Navigate back  to your ansible server============
+===write another ansible-playbook to pull and deploy image on Docker Server
+#vim container-deployment.yml
+---
+- name: pull docker image and deploy on docker container
+  hosts: all
+  become: true
+  remote_user: ansibleuser
+  gather_facts: no
+  tasks:
+    - name: pull docker image from docker hub account
+      command: docker PULL tech-jah/application-image:latest
+    - name: creat docker container
+      command: docker container run -d --name application-container -p 8080:8080 tech-jah/application-image:latest
+:wq!
+#cat container-deployment.yml
+Note!! NOTE! NOTE!
+Before running this playbook , ensure that you add ansibleuser to the docker server
+cat /etc/group
+#usermod -aG docker ansibleuser
+#cat /etc/group
+==============Now run the playbook================
+#ansible-playbook container-deployment.yml --limit [docker-server-private-IP]
+==To check if the image has been pulled successfully, run:
+#docker image ls
+==To check if the container has been build successfully, run:
+#docker container ls
+====Now, go to your AWS EC2 and copy the docker server public address and paste it to a browser
+192.16.234.2:8080/java-tomcat-maven-example {this is the application .war file}
+Hello Everyone
+Welcome to CI/CD pipeline project
+
+==WHEN RERUNNING THE ANSIBLE-PLAYBOOK, AN ERROR IS NOTED!
+== HOW TO CORRECT IT==
+⦁	To resolve this error issue, you have to remove all the deployed images and containers
+⦁	Modify the playbook and then, 
+⦁	Re-run the playbook
+vim container-deployment.yml
+---
+- name: pull docker image and deploy on docker container
+  hosts: all
+  become: true
+  remote_user: ansibleuser
+  gather_facts: no
+  tasks:
+    - name: stop the existing running container
+      command: docker container stop application-container
+      ignore_errors: yes
+
+    - name: remove the stopped container
+      command: docker container rm application-container
+      ignore_errors: yes
+
+    - name: remove the existing docker image
+      command: docker image rm tech-jah/application-image
+      ignore_errors: yes
+
+      name: pull docker image from docker hub account
+      command: docker pull tech-jah/application-image:latest
+    
+    - name: creat docker container
+      command: docker container run -d --name application-container -p 8080:8080 tech-jah/application-image:latest
+:wq!
+		==Now, run the playbook===
+#ansible-playbook container-deployment.yml --limit <docker-server-private-ip>
+
+======================================================================
+===========To validate, switch to your Docker Server and run the commands:=====
+#docker container ls
+#docker image ls 
+==Go to the browser and refresh to view deployed file===
+Hello Everyone
+Welcome to CI/CD pipeline project
+=====Now, automate this job via Jenkins platform======
+==Click on the "jenkins-ansible-docker-integration" job
+==scroll down to [Post-build Actions]
+==Exec command
+ [ansible-playbook /home/ansibleuser/opt/docker/create-application-docker-image.yml --limit localhost
+ansible-playbook /home/ansibleuser/opt/docker/container-deployment.yml  --limit <docker-server-private-ip]
+[save & apply]
+==run the job by clicking
+==Build now
+==Go to docker hub and refresh to see the file
+==also, go to your docker server to check
+#docker container ls
+docker images
+docker ps -a
+docker stop ID
+docker contanier prune
+docker ps -a
+
+

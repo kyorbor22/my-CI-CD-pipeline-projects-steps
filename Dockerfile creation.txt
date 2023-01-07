@@ -1,0 +1,160 @@
+Dockerfile creation
+
+Dockerfile : 
+A text file with instructions to build image
+Automation of Docker Image Creation
+
+FROM
+RUN
+CMD
+
+Step 1 : Create a file named Dockerfile
+
+Step 2 : Add instructions in Dockerfile
+
+Step 3 : Build dockerfile to create image
+
+Step 4 : Run image to create container
+
+COMMANDS
+: docker build 
+: docker build -t ImageName:Tag directoryOfDocekrfile
+
+: docker run image
+
+#docker search httpd******
+
+*************************Stop all running Containers:
+#docker stop $(docker ps -aq)
+
+***************************Remove all Containers:
+#docker rm $(docker ps -aq)
+
+**********************Remove all Stopped Containers:
+
+#docker ps --filter status=running
+
+#docker stop $(docker ps --filter status=running -q)
+
+#docker rm $(docker ps --filter status=exited -q)
+
+*****************Removing all Images:
+
+#docker rmi $(docker images -q)
+
+#docker image rm techjah/application-image application-image tomcat
+
+#docker image prune
+
+******************************************docker image modules*************************
+docs.ansible.com/ansible/2.4/docker_image_module.html
+***************************************************************************************
+
+*************to run a container*************
+****make an /opt/docker dir******
+#mkdir /opt/docker
+#cd /opt/docker
+#vim Dockerfile
+ paste: the following below:
+
+FROM tomcat:latest
+RUN cp -R /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps
+COPY ./*.war /usr/local/tomcat/webapps
+
+:wq!
+**** in a terminal mode: build container name tomcat:v2 {v2 is the tag name}****
+
+# docker build -t regapp:v1 .   [***to build images***]
+
+     [***to run in a terminal mode**]
+
+#docker run -t --name regapp-server -p 8081:8080 regapp:v1  
+
+#docker run -t --name regapp-server -p 8081:8080 regapp:v1
+
+	[***to build tomcat images***]
+
+#docker build -t tomcat:v2 .
+
+********view images********
+#docker images
+
+*****run in detached mode************
+
+#docker run -d --name tomcat-container -p 8081:8088 tomcat 
+
+
+
+***************to run inside the container itself*********
+
+# docker exec -it tomcat-container /bin/bash
+
+root@74327665566c:/usr/local/tomcat# ls
+
+#cd webapps
+#ls
+#cd webapps.dist/
+root@74327665566c:/usr/local/tomcat/webapps.dist# cp -R * ../webapps/
+
+
+===========================================================================
+
+cd /opt/docker;
+docker build -t regapp:v1 .;
+docker build -t regapp:v1 .;
+docker rm registerapp;
+docker run -d --name registerapp -p 8087:8080 regapp:v1
+=======================================================================
+
+******With the help of ansible, from github -->jenkins/Maven -->, we can deploy images to dockerhub, and then--> to docker server***
+
+#ansible-playbook regapp.yml --limit ansible    [***ansible can be added to jenkins for automation**]
+
+
+
+
+
+***********to push docker images****************************
+
+before pushing your images, you have to login to your dockerhub account
+
+***Next, before pushing images u have to update ImageName by taging it. eg.
+
+docker tag local-image:tagname new-repo:tagname
+
+docker push new-repo:tagname
+
+docker tag imageID username/imageName:latest
+
+docker tag fa86cb2a601a ansiadmin/regapp:latest
+
+**************commit it to dockerhub***************
+****To commit to dockerhub, we have to first login into our dockerhub account from our ansible server*****
+
+#docker login
+ ***[provide the details]***
+Note!! in the real world we will create our own local registry to hold our immages: using jfrog, amazon registry, or azur registry. 
+
+#docker push ansiadmin/regapp:latest
+#docker push userName/ImageName:tagName 
+
+*****Now lets update our image name****
+#docker tag 4d289d6a74a0 ansiadmin/regapp:latest
+
+****************minicube****************
+setting up kubernetes:
+github.com/yankils/Simple-DevOps-Project/tree/master/Kubernetes
+use vmware as the driver
+--nodes**
+cupelets
+shoot cluster
+mincube --nodes --driver as docker,[vmware]---
+whizlabs Newest playground: cloud sandbox
+
+
+
+
+
+
+
+

@@ -1,0 +1,369 @@
+>>>>>>Maven Integration to Jenkins<<<<<
+
+*****What you will learn from this project********** 
+
+⦁	Automate CI/CD Pipeline job execution from Maven build and test cases execution
+
+⦁	Perform Parallel build with different labels for development and production environment.
+
+⦁	webhook integration with jenkins
+
+⦁	sending email notification to user-admin
+
+⦁	How to create AWS EC2 Linux Machine?
+
+⦁	how to install Jenkins on AWS EC2
+
+⦁	How to integrate GitHUb with Jenkins?
+
+⦁	How to implement webhooks in your Jenkins pipeline?
+
+⦁	How to integrate Maven with Jenkins to automate the builds?
+
+⦁	How to integrate email plugin in Jenkins?
+
+⦁	How to create Maven build jenkins job?
+
+========================Tasks=======================
+
+⦁	Create AWS EC2 Linux Machine and install Jenkins on it.
+
+⦁	Impplement webhook integration between Jenkins and Github for automation builld execution.
+
+⦁	Install and integrate Maven tool to build JAVA code.
+
+⦁	Implement an email plugin in jenkins's pipeline to send noktifications post pipeline completion.
+
+⦁	Test build automation with the help of build tools like maven to understand the build process.
+
+	>>>>>>>>>>>create you ec2-instances<<<<<<<<<<<
+
+================create security group
+================ssh tcp 22 custom 0.0.0.0
+================tcp tcp 8080 custom 0.0.0.0  ::/0
+================review and lunch
+================create key-pair
+
+========java installation: it is needed for jenkins to work=========
+
+#!/bin/bash
+yum -y update
+java --version
+yum -y insstall java-11*
+java --version
+
+
+=========navigate to the path where java is installed========
+
+cd /usr/lib/jvm
+ls -ltr
+
+>>>>>>>>>>>>>>Now select java----open-jdk<<<<<<<<<<<<<<<<<<<<<<
+
+>>>>>>>>>>>>>>copy this path to setup your java home path<<<<<<
+
+/usr/lib/java-11-open-jdk...x86_64
+cd 
+
+>>>>>>vim .bash_profile<<<<<<<<
+
+JAVA_HOME=/usr/lib/jvm/java-<home path>
+PATH=$PATH:$HOME/bin:$JAVA_HOME
+:wq! [Save and quit]
+
+========To validate===============
+cat .bash_profile
+#echo $JAVA_HOME
+#source $PATH
+or exit or lugout root
+then login in again.
+#echo $JAVA_HOME
+
+
+==============Now Download and Configure Jenkins======================
+
+>>>>>>>>Before installing jenkis do the following:
+>>>>>>>>First download Jenkins repository: 
+>>>>>>>>Second, download jenkins key:
+>>>>>>>>Jenkins Repo and key download command:
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+yum -y install jenkins*
+
+=================next, check the status of Jenkins:===============
+ystemctl status jenkins.service
+systemctl start Jenkins.service
+systemctl enable Jenkins --now
+
+=================Now, Navigate to your jenkins console================
+=================copy the following to a browser:
+
+http://copy.public.ip:8080
+
+==================unlock the key by cating the following path:======
+
+*************/var/lib/jenkins/secretes/initialAdminPassword
+
+cat  /var/lib/jenkins/secretes/initialAdminPassword
+paste the key as Administrative password.
+
+===================Next, Customize jenkins, go to the console======
+
+click on suggested plugins to install [This will install all the surgested plugins]
+now create the first admin user and save and finish
+****Jenkins installation is now successful*********
+
+==================Next step, add JAVA_HOME path to Jenkins console===============
+
+click on Dashboard==>>>Global Tool Configuration
+
+>>>>>>under JDK:
+name: JAVA_HOME
+>>>>>>unchecked: install automatically<<<<<<<<<<
+JAVA_HOME:[copy and paste the java_home_path here] 
+
+save
+apply
+
+=======================Next, integrate Git with Jenkins============
+
+=======================Next, check to see if Git is installed=============
+git --version
+yum -y install git
+
+========================navigate to Jenkins console===========================
+
+Manage Jenkins==>Manage Plugins==>installed[search for git plugins]
+
+*****git plugin
+
+Installed without start
+
+Manage Jenkins==>>Global Tool Configuration==>>check "Git"
+
+Name[Enter a name "git"]
+
+To get the path to "Git executable", go back to jenkins terminal, and
+cd /usr/bin
+ls -ltr
+>>>>cope and paste the /usr/bin/git directory<<<<<<<<<
+
+path to Git executable[/usr/bin/git]
+
+save 
+apply
+
+=================next, test the setup by creating a jenkins job=======================
+
+click on New Item
+Enter an item name==>[clone github_repository_demo]
+Free Style Project
+OK
+
+Click Dashboard
+
+Click on the [clone github_repository_demo]
+
+Descritpion[clonign git repository in CI/CD pipeline]
+
+scroll down===>select Git===>URL<paste github repository link>
+
+save
+apply
+
+Click on Build Now [This will build the job in the CI/CD pipeline].
+
+>>>>>>>>To see your workspace:
+
+Click on Dashboard==>[clone github_repository_demo]
+Here you will see all your repository
+
+=================next, setup webhooks=====================
+⦁Webhooks help to trigger Jenkins job whenever changes are made to github.
+
+⦁Example, whenever a change is made and commited in github, it will send a signal to jenkins to carry out a build.
+
+===============Navigate to your github repository============================= 
+
+click on our CI/CD pipeline repository
+
+Then, Settings
+
+On the left hand side, click on Webhooks
+
+Add webhook==>you will be prompted to enter your github password.
+
+Provide the payload URL<Jenkins-public-URL>
+ 
+Example>>>>>http://192.168.2.3:8080/github-webhook/<<<<<<<<<
+
+Under Content Type: select: Application/json
+
+keep everything else defaults
+
+Add webhook
+
+===============Navigate to Jenkins console===================
+click on the job name "clone github_repository_demo" 
+Click Configure
+BUild Triggers: check: [Github hooks trigger for GITscm polling]
+save 
+apply
+
+======Test your configuration, go back to your github repository, make changes to the readme file and commit=====
+
+
+=======Next, integrate Maven to automate the job===========
+
+
+***********Navigate to your Jenkins Server***************
+Check to see if Maven is installed
+mvn --version
+
+===================#Maven download command:==============================
+wget https://mirrors.gigenet.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz
+maven --version
+cd /opt 
+wget https://mirrors.gigenet.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz
+tar -xvfz apache-maven-3.8.1-bin.tar.gz
+mv apache-maven-3.8.1-bin.tar.gz maven
+ls -ltr
+cd maven
+ls -ltr
+pwd
+
+>>>>>>>>>>>>>Add the maven home/path to the .bash_profile<<<<<<<<<<
+==============now navigate to the .bash_profile===================
+
+===vim .bash_profile====
+
+JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto.x86_64
+M2_HOME=/opt/maven
+M2=/opt/maven/bin
+PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2_HOME:$M2
+
+:wq! [Save and quit]
+
+>>>>>>>Verify your configureation<<<<<<<<
+
+cat .bash_profile
+echo $M2_HOME
+
+>>>>>>>source the configuration for changes to apply<<<<<<<
+
+source $PATH
+echo $M2_HOME
+echo $JAVA_HOME
+
+>>>>>>>>another way to do the above process is to do the following:<<
+ 
+exit or lugout root
+login back in
+
+echo $M2_HOME
+echo $M2
+
+======Next, go to jenkins console to download Maven plugins======
+
+Dashboard==>Manage Jenkins
+Manage Plugins==>available[maven+ maven integration, and Maven Innoker]
+Install without start
+
+=======Next, Manage Global configuration tool==================
+
+Dashboard==>Manage Jenkins
+Global Tool Configuration
+>>>>>>add Maven<<<<<<<<<<
+	Name[M2_HOME]==unchecked installed automatically
+	MAVEN_HOME [/opt/maven]
+save
+apply
+
+==============To validate the setup===========================
+==click on create New Job
+Enter an item name[maven-jenkins integration]
+Maven Project
+click OK
+================Next phase=============================
+click on the job name [maven-jenkins integration]
+Click on Configure
+Description[testing maven set up]
+
+source code Management
+Select Git
+Repository URL:<CI/CD repo link here>
+
+>>>>>Scroll down under Build<<<<<<<<<<<<<<<<<<<
+Build:
+	Root PCM[pom.xml] *****this is required to run maven*** 
+	Goals and options[clean install package]
+			This will do the following:
+			 1. clean installed setup, 2. installation, 3.create a pckge.
+
+keep everything as default
+save
+apply
+
+=============now click build to perform the deployment=============
+
+=============To validate the deployment======================
+
+Click on the JOB-NAME
+click workspace
+	**** target
+click on target to see it content[**/*.war file created]
+
+====LASTLY INTEGRATE EMAIL PLUGIN to send notification to the user===============
+
+Dashboard==>manage jenkins==>Manage plugins==>installed[email plugin]
+
+Dashboard==>Manage Jenkins==>Configuration==>Extended E-mail Notification
+
+SMTP Server [smtp.gmail.com]
+
+SMTP Port [465]
+
+Default e-mail surfix [@gmail.com]
+
+Default e-mail Recepients [jallman379@gmail.com]
+
+click on [advance]
+
+SMTP Username [jallman379@gmail.com]
+
+SMTP Password [jallman]
+
+select [Use ssl]
+
+Additional groovy classpath====
+
+Enabled Debug Mode [select]
+	click on Default Triggers
+	select [always]
+save
+apply
+
+======================now select your maven job========================
+Click configure
+
+Click Post-Build Actions
+	 [Editable Email Notification]
+
+Under Attached Build log
+	 [attached Build log]
+save
+apply
+
+===============Test setup by running build now!======
+If you dont see your email, then you have to configure your email security setup by clicking on the link provided in build console output.
+===disable two steps authentication.
+===it will allow you to be able to receive messages.
+====To test your setup, go to your github and make changes to CI/CD repo readme file and commit it===
+go back to jenkins console to see changes!!!
+
+
+
+
+
+

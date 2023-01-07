@@ -1,0 +1,25 @@
+---
+- name: pull docker image and deploy on docker container
+  hosts: all
+  become: true
+  remote_user: ansibleuser
+  gather_facts: no
+  tasks:
+    - name: stop the existing running container
+      command: docker container stop application-container
+      ignore_errors: yes
+
+    - name: remove the stopped container
+      command: docker container rm application-container
+      ignore_errors: yes
+
+    - name: remove the existing docker image
+      command: docker image rm tech-jah/application-image
+      ignore_errors: yes
+
+      name: pull docker image from docker hub account
+      command: docker pull tech-jah/application-image:latest
+    
+    - name: creat docker container
+      command: docker container run -d --name application-container -p 8080:8080 tech-jah/application-image:latest
+

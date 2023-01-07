@@ -1,0 +1,397 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset2 Symbol;}}
+{\colortbl ;\red0\green255\blue0;\red255\green255\blue0;\red255\green0\blue0;\red0\green255\blue255;\red0\green77\blue187;}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 Ansible Setup and configuration\par
+what you learn from the project:\par
+How to install ansible on AWS EC2 Machine?\par
+How to configure password-less authentication?\par
+How to create and run Ansible Playbooks?\par
+How to add servers/hosts in Ansible?\par
+\b\fs36 ============Tasks:\par
+\b0\fs22 create Ec2 Create 2 AWS Instances Linux hosts/machines in the US East region\par
+Install ansible on both server and create Ansible playbooks for web application deployment\par
+configure password less authentication for quick code deployment automation\par
+add new servers/host and deploy the web server parallelly\par
+Create and validate ansible playbook\par
+Validate web server on each server/host\par
+\b\fs24 integrate jenkins with ansible and tomcat server\par
+\b0\fs22\par
+===============================================================\par
+click on instances===>select AWS linux==>t2micro==>security group name: ansible-sg Description: ansble-sg\par
+ssh           TCP           Port Range: 22\tab 0 .0.0.0\par
+ HTTP        TCP          port Range 80            0.0.0.0,  ::/0\par
+Create Key pair: Virg-key\par
+use MobaXterm to ssh to your ansible servers:\par
+ #yum -y update\par
+==>ensure that python is installed\par
+#yum -y install python\par
+==install ansible\par
+# sudo amazon-linux-extras install ansible2 -y\par
+#yum install python-pip -y\par
+#pip install ansible\par
+#ansible --version\par
+create /etc/ansible directory\par
+#mkdir /etc/ansible\par
+#cd /etc/ansible\par
+=========Next, create same ansible user for both machines==========\par
+#useradd ansibleuser\par
+#passwd ansibleuser\par
+=================add both users to sudoers file on both machines======\par
+#visudo\par
+ansibleuser   ALL=(ALL)       NOPASSWD: ALL\par
+====validate\par
+#visudo\par
+shift+G\par
+=====on both master-server and node, enable user authentication\par
+navigate to /etc/ssh/sshd_config\par
+#cd /etc/ssh/\par
+#ls -ltr\par
+#vim sshd_config\par
+or\par
+#vim /etc/ssh/sshd_config\par
+\tab # To disable tunneled clear text passwords, change to no here!\par
+\tab PasswordAuthentication yes\par
+\tab #PermitEmptyPasswords no\par
+\tab #PasswordAuthentication no\par
+===start sshd daemon====\par
+#systemctl start sshd\par
+#systemctl enable sshd --now\par
+#systemctl status sshd\par
+=====Next Generate private and public keys (key-gen)\par
+===first switch to ansibleuser\par
+#su - ansaibleuser\par
+#ls -la\par
+#ssh-keygen -t rsa\par
+#ls -la\par
+#cd .ssh\par
+#ls -ltr\par
+=======next, copy the public-key and private key to host(node) and localhost\par
+===This will allow for a passwordless remote login\par
+#ssh-copy-id -i ansibleuser@<node-private-IP>\par
+#ssh-copy-id -i <localhost>\par
+got to your EC2-machine (node)\par
+===to login to the host machine, do:\par
+ssh ansibleuser@<host/node-machine-private-IP>\par
+#logout\par
+==========Next, add host/node machine to hosts file\par
+#cd /etc/ansible/\par
+#vim hosts\par
+\tab host-machine-private-IP\par
+\tab localhost [this is ansible master-server]\par
+:wq\par
+======now validate your connection from master to host machine\par
+#ansible all -m ping\par
+====You will noticed one error simply because you have not enable \par
+*******local machine is not reachable!!!\par
+******to correct that enable userauthentication to localhost\par
+#exit from ansibleuser shell\par
+#cd /etc/ssh\par
+#vim sshd_config\par
+# To disable tunneled clear text passwords, change to no here!\par
+\tab PasswordAuthentication yes\par
+\tab #PermitEmptyPasswords no\par
+\tab #PasswordAuthentication no\par
+:x\par
+#systemctl restart sshd\par
+#systemctl status sshd\par
+login again as ansibleuser\par
+#ansible all -m ping\par
+\tab ==To view free memmory\par
+#ansible -m shell -a 'free -m' all\par
+#ansible -m shell -a 'lsblk' all\par
+===next, create ansible playbook to deploy webserver=====================\par
+*navigate to ansibleuser and ansibleuser home directory:\par
+#su - ansibleuser\par
+#cd /home/ansibleuser\par
+===install httpd service=====================\par
+====create an index.html file to deploy deploy apache\par
+#pwd to view your current directory\par
+====create an index.html file in /home/ansibleuser directory\par
+#sudo vim index.html\par
+<h1>This is webserver deployment using ansible-playbook</h1>\par
+:x save and quit\par
+===create a playbook in the same directory\par
+==ansible-playbooks: contains multiple ansible commands and can be executed step-by-step\par
+===commands are done in sequential order.\par
+===all of this commands are group together\par
+#vim web.yml\par
+- name:  webserver deployment\par
+   hosts: all\par
+   become: true\par
+   remote_user: ansibleuser\par
+   tasks:\par
+\tab - name: install apache service\par
+\tab   package:\par
+\tab\tab  name: httpd\par
+\tab\tab  state: present\par
+\tab - name: copy website code\par
+                 copy:\par
+\tab\tab src: /home/ansibleuser/index.html\par
+\tab\tab dest: /var/www/html\par
+\tab - name: start apache service\par
+\tab   service:\par
+\tab\tab  name: httpd\par
+\tab\tab  state: started\par
+:wq!\par
+#ansible-playbook web.yml --syntax-check\par
+#ansible-playbook web.yml \par
+=====================To validate your task, go to the host machine\par
+#cd /var/www/html\par
+#ls -ltr\par
+index.html file is copied successfully\par
+#cat index.html\par
+#systemctl status httpd\par
+=========Navigate to AWS-console, copy the public IP of node machine\par
+==========past on a new tab 162.267.2.4:80, to view file\par
+=========Navigate to AWS-console, copy the public IP of master machine to view localhost deployment.\par
+============================================================================================================================================================\par
+project6: Integrate Ansible with Jenkins pipeline\par
+What will you lern in this project?\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 how to install ansible plugin?\par
+{\pntext\f1\'B7\tab}how to integrate ansible on Jenkins server\par
+{\pntext\f1\'B7\tab}how to create Ansible Playbook for jenkins pipeline?\par
+{\pntext\f1\'B7\tab}How to run Ansible Playbook from Jenkins?\par
+{\pntext\f1\'B7\tab}Integrate POLL SCM with Jenkins\par
+
+\pard\sa200\sl276\slmult1 Tools that we are going to use in this project are:\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Git and GitHub\par
+{\pntext\f1\'B7\tab}Maven/tomcat\par
+{\pntext\f1\'B7\tab}Jenkins\par
+{\pntext\f1\'B7\tab}Ansible\par
+{\pntext\f1\'B7\tab}AWS\par
+
+\pard\sa200\sl276\slmult1 Tasks:\par
+
+\pard 
+{\pntext\f0 1.\tab}{\*\pn\pnlvlbody\pnf0\pnindent0\pnstart1\pndec{\pntxta.}}
+\fi-360\li720\sa200\sl276\slmult1 install Ansible plugin and integrate with Jenkins for continuous application deployment\par
+{\pntext\f0 2.\tab}create Ansible playbook to deploy application artifacts on Tomcat Server\par
+{\pntext\f0 3.\tab}Add servers/hosts in Ansible playbook for application deployment\par
+{\pntext\f0 4.\tab}Run the Ansible playbook using Jenkins pipeline\par
+
+\pard\sa200\sl276\slmult1\highlight1 =================first: setup and configure your ansible instance===============\highlight0\par
+setup AWS EC2 instance: Coinfigure Security Group\par
+name: ansi-sg\par
+Description: ansi-sg\par
+Type\tab Protocol\tab\tab Port Range\tab source\tab\tab ip\par
+SSH\tab TCP \tab\tab\tab 22\tab\tab custom\tab\tab 0.0.0.0\par
+==login to server and update the system\par
+#yum -y update\par
+#clear\par
+#yum -y install python\par
+#yum -y install python-pip\par
+#pip install ansible\par
+#ansible --version\par
+==create ansible config path\par
+#mkdir /etc/ansible\par
+#cd /etc/ansible\par
+#ls -ltr\par
+====================create ansible user================================\par
+=========Next, create same ansible user for both machines==========\par
+#useradd ansibleuser\par
+#passwd ansibleuser\par
+=================add both users to sudoers file on both machines======\par
+#visudo\par
+\highlight2 ansibleuser   ALL=(ALL)       NOPASSWD: ALL\par
+\highlight0 ====validate\par
+#visudo\par
+shift+G\par
+=====on both master-server and node, enable user's passwordAuthentication\par
+navigate to /etc/ssh/sshd_config\par
+#cd /etc/ssh/\par
+#ls -ltr\par
+#vim sshd_config\par
+or\par
+#vim /etc/ssh/sshd_config\par
+\tab # To disable tunneled clear text passwords, change to no here!\par
+\tab PasswordAuthentication yes\par
+\tab #PermitEmptyPasswords no\par
+\tab #PasswordAuthentication no\par
+:wq!\par
+==================start sshd daemon===========================\par
+#systemctl start sshd\par
+#systemctl enable sshd --now\par
+#systemctl status sshd\par
+\highlight1 ============Next Generate private and public keys (key-gen)===================\par
+\highlight0 ===first switch to ansibleuser\par
+#su - ansaibleuser\par
+#ls -la\par
+#ssh-keygen -t rsa\par
+#ls -la\par
+#cd .ssh\par
+#ls -ltr\par
+\highlight1 =======next, copy the public-key and private key to host(node) and localhost=============\par
+\highlight0 ===This will allow for passwordless remote login to your Tomcat Server\par
+#ssh-copy-id -i ansibleuser@<Tomcat-Server-private-IP>\par
+#ssh-copy-id -i <localhost>\par
+\tab ***Navigate to your EC2-machine (node)\par
+===to login to the host machine, do:\par
+ssh ansibleuser@<Tomcat-machine-private-IP>\par
+#logout\par
+==========Next, add hosts machine to hosts file\par
+#cd /etc/ansible/\par
+\cf3 #sudo vim hosts\par
+\cf0\tab Tomcat-host-machine-private-IP\par
+\tab localhost [this is ansible master-server]\par
+:wq\par
+======now validate your connection from master to host machine\par
+#ansible all -m ping\par
+\par
+\highlight1 ===============================================================================================on you Tomcat server, install ansible aswell=========================\highlight0\par
+===open a new terminal and ssh to tomcat server\par
+#sudo su -\par
+#yum -y update\par
+====================create ansible user================================\par
+=========Next, create same ansible user for both machines==========\par
+#useradd ansibleuser\par
+#passwd ansibleuser\par
+=================add both users to sudoers file on both machines======\par
+#visudo\par
+\highlight2 ansibleuser   ALL=(ALL)       NOPASSWD: ALL\par
+\highlight0\tab\tab\par
+\tab\tab ====\highlight1 To validate\highlight0\par
+#visudo\par
+shift+G\par
+=====on both master-server and node, enable user's PasswordAuthentication\par
+navigate to /etc/ssh/sshd_config\par
+#cd /etc/ssh/\par
+#ls -ltr\par
+#vim sshd_config\par
+or\par
+#vim /etc/ssh/sshd_config\par
+\tab # To disable tunneled clear text passwords, change to no here!\par
+\tab PasswordAuthentication yes\par
+\tab #PermitEmptyPasswords no\par
+\tab #PasswordAuthentication no\par
+:wq!\par
+==================\highlight1 start sshd daemon\highlight0 ===========================\par
+#systemctl start sshd\par
+#systemctl enable sshd --now\par
+#systemctl status sshd\par
+======================================================================================INtegrating Ansible with Jenkins==============================\par
+copy public ip of Jenkins Server and paste to your browser: 172.31.20.188:8080\par
+==login to the console\par
+==install Over SSH\par
+==>Manage Jenkins==>Manage Plugins==>search for Publish Over SSH==>[install without restart]\par
+===Next, configure it:\par
+==>Manage Jenkins==>Configure System==>SSH Server[add]==>\par
+\b Name: \b0 [ansible-server]\par
+\b Hostname\b0 : [enter private ip of ansible server]\par
+\b Username\b0 : [ansibleuser]\par
+\tab\tab\tab\tab\tab\tab\tab\tab\tab ===\cf3 Click Advance\par
+\cf0 ==>click on Usepassword authentication or use a different key\par
+passphrase/password [***********]\par
+\tab\tab\tab\tab\tab\tab\tab\tab\tab Test Configuration\par
+save and apply\par
+==========Create A Jenkins Job to copy .war file on ansible server=================\par
+click on New Item==>Enter an item name[\highlight4 ansible-jenkins-demo\highlight0 ]\par
+==select: Maven project\par
+==click ok\par
+==>Description:\par
+\tab ansible-jenkins integration\par
+==>Source Code Management:\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Git\par
+
+\pard\sa200\sl276\slmult1 Repository URL\par
+\tab [ github repodirectory link]\par
+Build:\par
+\tab Root POM:\par
+\tab\tab pom.xml\par
+\tab Goals and options:\par
+\tab\tab clean install package\par
+Post Build Action:\par
+\tab =Send build artifacts over SSH\par
+Transfers Set\par
+Source Files:\par
+\tab **/*.war\par
+\highlight4 Remote Direstory\highlight0 : navigate to your ansible server terminal\par
+#cd \par
+#pwd\par
+/home/ansibleuser\par
+#cd /opt\par
+#ls -ltr\par
+#sudo mkdir files\par
+\highlight4 Remote Direstory\highlight0 : /opt/files\par
+/home/ansibleuser/opt/files\par
+save and apply\par
+==>To check your configuration details, click on configure\par
+==To build the job, clcik on Build Now\par
+===========================To validate your build job===========\par
+navigate to your ansible server\par
+#cd /opt/files\par
+#ls -ltr\par
+***target\par
+#cd target\par
+#ls -ltr\par
+java-tomcat-maven-example.war\par
+=====================navigate to jenkins console======\par
+==>Dashbord==>ansible-jenkins-demo==>target\par
+\par
+=======create ansible-playbook to deploy file from ansible server to tomcat server========\par
+#cd /opt/files\par
+#ls -ltr\par
+#sudo vim appdeploy.yml\par
+- name: Application deployment on tomcat server using ansible-playbook\par
+   hosts: all\par
+   become: true\par
+    remote_user: ansibleuser\par
+    tasks:\par
+  \tab  - name: copy war file\par
+\tab     copy:\par
+\tab\tab src: /home/ansibleuser/opt/files/target/java-tomcat-maven-example.war\par
+\tab\tab dest: /opt/tomcat9/webapps\par
+:wq!\par
+=======================================================================\par
+##Note! on tomcat server, Navigate to #cd /opt/tomcat9\par
+##ls -ltr\par
+***webapps\par
+#cd webapps\par
+ls -ltr\par
+***java-tomcat-maven-example.war\par
+***look for the current time-stamp\par
+==============================================================================\par
+===>Test the playbook\par
+#ansible-playbook appdeploy.yml\par
+==>Navigate to tomcat server\par
+#cd /opt/tomcat/webapps\par
+#ls -ltr\par
+****you will see java-tomcat-maven-example.war file [date]\par
+==>Note!!, we will not run the playbook manaully...but automation via jenkins!!\par
+\highlight4\b ===========Integrate Ansible server with Jenkins Server========\par
+\highlight0\b0 ==>login to Jenkins Console==>modify==>[ansible-jenkins-demo]\par
+==>clcik on Dashboard==>clcik ansible-jenkins-demo==>click on Configure\par
+==scroll down: under Post Build Action: add another server\par
+==>\cf3 Exec command\cf0 :\par
+\tab\tab\cf5 ansible-playbook/opt/files/appdeploy.yml\cf0\par
+\tab\tab\par
+\cf3\b save apply\cf0\b0\par
+==>click Build Now\par
+==>open console output\par
+==================copy and paste tomcat server public ip and login================\par
+192.168.2.20:8080/java-tomcat-maven-example\par
+look at the message!!!\par
+\par
+================Now Let integrate the POLL SCM================\par
+==Login to your jenkins server\par
+click on the job==>Configure==>scroll down to Build Triggers [check Poll SCM]\par
+schedule:\par
+\tab * * * * *\par
+save & apply\par
+=============Next, Navigate to Github repository=================\par
+==>click on CI/CD Pipeline-demo\par
+==>open Readme file and comit a change\par
+Testing ansible-jenkins integration\par
+\cf3 commit!!\par
+\cf0 ========Return back to jenkins console to see the automation build taking place.======\par
+click on console output==>click on job name\par
+=======Navigate to Tomcat Server to view your job=============\par
+#cd /opt/tomcat/files/webapps\par
+#ls -ltr\par
+\par
+\par
+\par
+}
+ 

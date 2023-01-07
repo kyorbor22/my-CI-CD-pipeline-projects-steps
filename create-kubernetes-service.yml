@@ -1,0 +1,7 @@
+- name: create kubernetes service
+  hosts: all
+  become: true
+  user: root
+  tasks:
+    - name: create kubernetes service
+      command: kubectl apply -f application-service.yml   

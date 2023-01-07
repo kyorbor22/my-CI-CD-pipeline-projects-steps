@@ -1,0 +1,138 @@
+
+
+=====================Install the Dependencies================
+
+yum install yum-utils device-mapper-persistent-data lvm2
+
+# yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+
+# yum install docker*
+
+# docker --version
+
+# systemctl start docker
+
+# systemctl enable docker.service --now
+
+# systemctl enable docker
+
+# systemctl status docker 0
+
+# systemctl status docker.service
+
+===========Disable SELinux:COPY AND PASTE THE BELOW COMMANDS=========
+
+setenforce 0
+sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
+
+Disable swap:
+sed -i '/swap/d' /etc/fstab
+swapoff -a
+
+==========Update sysctl settings for Kubernetes networking:copy and paste whole block=================
+
+cat >> /etc/sysctl.d/kubernetes.conf <<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system
+
+==========================Add yum Repo============================
+
+===========Add yum repository for kubernetes packages:COPY AND PASTE BELOW BLOCK======
+
+cat >>/etc/yum.repos.d/kubernetes.repo<<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
+        https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+  
+
+============Install Kubernetes:================================================
+
+#yum install -y kubeadm-1.15.6-0.x86_64 kubelet-1.15.6-0.x86_64 kubectl-1.15.6-0.x86_64
+
+
+#systemctl enable kubelet --now
+#systemctl start kubelet
+
+# systemctl status kubelet.service
+  
+==============Initialize Kubernetes cluster on MASTER node using command:============
+
+kubeadm init --apiserver-advertise-address=<master-node-private-ip> --pod-network-cidr=192.168.0.0/16
+
+
+  
+Run the following command to copy kube config file:
+mkdir /home/kubeuser/.kube
+cp /etc/kubernetes/admin.conf /home/kubeuser/.kube/config
+chown -R kubeuser:kubeuser /home/kubeuser/.kube
+
+#ls -la
+
+
+install Calico network connector using command as kubeuser:
+su - kubeuser
+kubectl create -f https://docs.projectcalico.org/v3.9/manifests/calico.yaml
+
+#kubeadm token create --print-join-command
+
+kubeadm join 172.31.89.157:6443 --token ukn4gs.0i7hm2a9v57wmnuy     --discovery-token-ca-cert-hash sha256:5ec88e75b634fcd00ebb097df41279d0e1f8aad43bc299941d85ac8647142e50
+=====copy the above token to your nodes==============
+
+#kubectl get nodes  
+
+# application-deployment.yml
+ 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: application-deployment
+spec:
+  selector:
+    matchLabels:
+      app: application-deployment
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+
+  template:
+    metadata:
+      labels:
+        app: application-deployment
+    spec:
+      containers:
+      - name: application-deployment
+        image: bhaskerrajput/application-image
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+
+# application-service.yml
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: application-service
+  labels:
+    app: application-deployment
+spec:
+  selector:
+    app: application-deployment
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30000
+  
+  

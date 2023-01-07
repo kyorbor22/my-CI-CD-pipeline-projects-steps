@@ -1,0 +1,21 @@
+---
+- name: create and push docker image to dockerhub account
+  hosts: all
+  become: true
+  gather_facts: no
+  tasks:
+    - name: create docker image
+      command: docker image build -t application-image:latest .
+      args:
+      	 	chdir: /home/ansibleuser/opt/docker
+    - name: add tag to docker image
+      command: docker image tag application-image tech-jah/application-image
+
+    - name: push docker image to docker hub account
+      command: docker image push tech-jah/application-image 
+      
+    - name: remove docker image from ansible-server
+      command: docker image rm application-image:latest tech-jah/application-image
+      ignore_errors: yes
+      
+        

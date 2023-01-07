@@ -1,0 +1,286 @@
+
+What you will learn in this project?
+
+How to create Jenkinsfile
+
+how to create Multibranch Pipeline job in Jenkins?
+
+How to deploy Tomcat service on AWS machine?
+
+How to archive the application artifacts and deploy on Tomcat?
+
+=============Tasks for this project==================
+
+Create AWS EC2 linux instance
+
+Install Tomcat service on AWS EC2
+
+Create Multibranch pipeline Jenkins job
+
+Store the Jenkins Pipeline step in JenkinsFile
+
+Run the Jenkins Pipeline to archive the application artifacts and deploy on Tomcat server.
+
+==================================Prerequisite:==============================
+
+AWS Account and login to AWS Console
+
+Create an AWS EC2 with Amazon Linux 2 AMI instance and Instance type between *micro-*small.
+
+#yum -y update
+
+JAVA is required in a Tomcat Server!!
+
+#JAVA --version
+
+Install Java JDK on Amazon Linux
+
+#yum -y install java-11
+
+================================ Install Tomcat:==================================
+
+******Go to /opt or /usr/local directory to download and Extract the tar.gz file**********
+
+#cd /opt/
+
+#wget https://mirrors.ocf.berkeley.edu/apache/tomcat/tomcat-11/v11.0.0-M1/bin/apache-tomcat-11.0.0-M1.tar.gz
+
+#https://mirrors.estointernet.in/apache/tomcat/tomcat-9/v9.0.62/bin/apache-tomcat-9.0.62.tar.gz
+
+#tar -xvzf apache-tomcat-9.0.62.tar.gz
+
+#ls -ltr
+
+Rename the apache-tomcat-9.0.62 tomcat9
+
+#mv  mv apache-tomcat-9.0.62 tomcat9
+
+#ls -ltr
+
+#cd tomcat9
+
+#ls -ltr
+
+#cd bin    [look for startup.sh and shutdown.sh scripts]
+
+#ls -ltr
+
+#./startup.sh
+
+
+
+===Before deploying the application, you have to modify META-INF file
+
+#cd /opt/tomcat9
+
+#ls -ltr
+
+#cd /opt/tomcat9/webapps/manager/META-INF
+
+#vim context.xml
+
+******Coment-out the buttom line!![<--   -->]
+
+		sameSiteCookies="strict" />
+  <!--  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+  allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" /> -->
+
+#cat context.xml
+
+#cd ../../..
+
+#ls -ltr
+
+#cd webapps
+
+#/opt/tomcat9/webapps/host-manager/META-INF
+
+******Coment-out the buttom line!![<--   -->]
+
+		sameSiteCookies="strict" />
+  <!--  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+  allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" /> -->
+
+============================Navigate back to tomcat9 directory======================
+#cd ../..
+
+#cd conf
+
+<role rolename="manager-script"/>
+  <role rolename="manager-gui"/>
+  <user username="tomcatuser" password="pwd123!@#" roles="manager-script,manager-gui"/>
+:wq!
+
+========================Restart the tomcat server again==========================
+
+
+#cd /opt/tomcat9/bin
+
+#sh shutdown.sh
+
+#sh start.sh
+
+Next, navigate to your browser and http://34.238.50.57:8080/manager/html
+
+enter your username: tomcatuser
+
+enter your passwd: *******
+
+==>Manage Jenkins==>Manage Plugins==>underAvailable[search deploy]==>
+
+==>Install without restart
+
+===>Next, go back to Dashboard and click on New Item==>Enter an item name[tomcat-deployment]
+
+==>Maven Project==>ok
+
+==Descriptio: deploying application on tomcat serve
+
+===>Git [URL]
+
+===>Build
+		==>Root POM [pom.xml]
+
+		==>Goals and options [clean install package]
+
+===>Post-build Actions [deploy war/ear to container]
+
+===>WAR/EAR files
+	==>[**/*.war]
+
+===>click Add Container [tomcat 9]
+
+==>add tomcatuser credential
+===>select jenkins
+
+===>add login creds
+
+
+===================now, navigate back to Tomcat server==========================
+
+cd /opt/tomcat9/webapps
+
+#ls -ltr
+
+****you will see the new .war file being copied.
+
+
+
+========================Add User for Tomcat and give permission=============================================
+#ps -ef | grep tomcatuser
+
+#useradd -r tomcatuser
+
+#passwd tomcatuser
+
+#chown -R tomcatuser:tomcatuser /opt/tomcat11
+
+
+========Create Tomcat Service: Copy and past below scripty for your tomcat service file=======
+
+sudo tee /etc/systemd/system/tomcat.service<<EOF
+[Unit]
+Description=Tomcat Server
+After=syslog.target network.target
+
+[Service]
+Type=forking
+User=tomcatuser
+Group=tomcatuser
+
+Environment=CATALINA_HOME=/opt/tomcat11
+Environment=CATALINA_BASE=/opt/tomcat11
+Environment=CATALINA_TMPDIR= /opt/tomcat11/temp
+Environment=CLASSPATH=/opt/tomcat11/bin/bootstrap.jar:/opt/tomcat11/bin/tomcat-juli.jar
+Environment=CATALINA_PID=/OPT/tomcat11/temp/tomcat.pid
+
+ExecStart=/opt/tomcat11/bin/catalina.sh start
+ExecStop=/opt/tomcat11/bin/catalina.sh stop
+
+RestartSec=12
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+=========================***Configuring Tomcat***====================================
+
+Tomcat originally connects over Port 8080, which happens to be the default port connector for Jenkins.
+
+To successfully connect and configure Tomcat, we need to start by changing the connector Port from 8080 to 8090.
+# cd /opt/tomcat/conf
+
+NOTE: Edit using the variables below:
+ 
+#cd /opt/tomcat9/conf
+
+#  vim server.xml
+    <Connector port="8090" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+
+
+
+=========================Open port 8090 in Linux Firewall==============================
+
+To access the Apache Tomcat web interface outside the localhost, we need to open port 8090 in the firewall of Rocky Linux
+
+# firewall-cmd --zone=public --permanent --add-port=8090/tcp
+
+# firewall-cmd --reload
+
+=======================***Start, Enable and Check Service status***============================
+
+#ps -ef | grep tomcat
+
+#systemctl daemon-reload
+
+#systemctl enable tomcat.service --now
+
+#systemctl status tomcat.service
+
+======================CREATE A SOFT-LINK TO START AND SHUTDOWN TOMCAT==========
+
+#ln -s /usr/local/tomcat/bin/startup.sh /usr/local/bin/tomcatup
+
+#ln -s /usr/local/tomcat/bin/shutdown.sh /usr/local/bin/tomcatdown
+
+
+=========================Check Tomcat Service on your browser=====================
+
+192.168.23.21:8090
+
+#====================to ensure that your tomcat is browsable===================
+
+navigate to amazon ec2---->security group---> edit indound----> make changes 8090
+
+and save.
+
+go back to the browser and enter the ec2ip:8090
+
+
+===========================================================================================
+sudo tee /etc/systemd/system/tomcat.service<<EOF
+[Unit]
+Description=Tomcat Server
+After=syslog.target network.target
+
+[Service]
+Type=forking
+User=tomcatuser
+Group=tomcatuser
+
+Environment=CATALINA_HOME=/usr/local/tomcat9
+Environment=CATALINA_BASE=/usr/local/tomcat9
+Environment=CATALINA_PID=/usr/local/tomcat9/temp/tomcat.pid
+
+ExecStart=/usr/local/tomcat9/bin/catalina.sh start
+ExecStop=/usr/local/tomcat9/bin/catalina.sh stop
+
+RestartSec=12
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
